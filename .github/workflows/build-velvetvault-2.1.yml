@@ -1,0 +1,33 @@
+name: Build VelvetVault 2.1
+
+on:
+  push:
+    branches:
+      - build-velvetvault-2-1
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: windows-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup MSBuild
+        uses: microsoft/setup-msbuild@v2
+
+      - name: Build Windows EXE
+        run: msbuild VelvetVault.csproj /p:Configuration=Release /p:Platform="Any CPU"
+
+      - name: Prepare artifact
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Force -Path artifact | Out-Null
+          Copy-Item "bin\Release\net48\VelvetVault-2.1.exe" "artifact\VelvetVault-2.1.exe"
+
+      - name: Upload EXE
+        uses: actions/upload-artifact@v4
+        with:
+          name: VelvetVault-2.1
+          path: artifact/VelvetVault-2.1.exe
+          if-no-files-found: error
