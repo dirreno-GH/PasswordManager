@@ -16,14 +16,19 @@ jobs:
       - name: Setup MSBuild
         uses: microsoft/setup-msbuild@v2
 
+      - name: Restore
+        run: msbuild VelvetVault.csproj /t:Restore /p:Configuration=Release /p:Platform="Any CPU"
+
       - name: Build Windows EXE
-        run: msbuild VelvetVault.csproj /p:Configuration=Release /p:Platform="Any CPU"
+        run: msbuild VelvetVault.csproj /p:Configuration=Release /p:Platform="Any CPU" /p:RestorePackages=false
 
       - name: Prepare artifact
         shell: pwsh
         run: |
+          $exe = Get-ChildItem -Path bin -Filter "VelvetVault-2.1.exe" -Recurse | Select-Object -First 1
+          if (-not $exe) { throw "VelvetVault-2.1.exe was not produced." }
           New-Item -ItemType Directory -Force -Path artifact | Out-Null
-          Copy-Item "bin\Release\net48\VelvetVault-2.1.exe" "artifact\VelvetVault-2.1.exe"
+          Copy-Item $exe.FullName "artifact\VelvetVault-2.1.exe"
 
       - name: Upload EXE
         uses: actions/upload-artifact@v4
